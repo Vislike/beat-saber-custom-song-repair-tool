@@ -1,0 +1,9 @@
+Beat Saber Custom Song Repair Tool
+
+I have noticed recently that many custom songs won't load (endless spinning animation when selecting the song) on vanilla (unmodified) Beat Saber.
+A common problem seam to be that the version info appears in the wrong spot in the .dat files.
+This tool is an automated way to attempt to fix such issues.
+This tool don't claim to be able to fix all songs, since there could be other problems as well.
+
+Select a custom song using browse button, and hit repair to attempt to repair it.
+If the song has no detectable problems, nothing will be done to its files.
