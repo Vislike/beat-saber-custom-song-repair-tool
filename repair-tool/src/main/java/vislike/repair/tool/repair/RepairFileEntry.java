@@ -1,47 +1,69 @@
 package vislike.repair.tool.repair;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import vislike.repair.tool.repair.Status.Code;
+import vislike.repair.tool.repair.result.FileStatus;
+import vislike.repair.tool.repair.result.RepairResult;
+import vislike.repair.tool.repair.result.RepairStatus;
 
 public class RepairFileEntry {
+
+	private static final Logger logger = LoggerFactory.getLogger(RepairFileEntry.class);
 
 	private RepairFileEntry() {
 	}
 
-	public static Status repairFile(String file) {
+	public static void appendResult(Path file, RepairResult result, String message) {
+		result.fileStatus().add(new FileStatus(file.getFileName().toString(), message));
+		logger.info("Applied [{}] {}", message, file);
+	}
+
+	public static RepairResult repairFile(String file) {
+		logger.debug("Starting repair of: {}", file);
+
 		Path infoDat = Path.of(file);
 		if (!infoDat.getFileName().toString().equalsIgnoreCase("info.dat")) {
-			return new Status(Code.FAILED,
+			return new RepairResult(RepairStatus.FAILED,
 					"Expected filename to be: info.dat, got: " + infoDat.getFileName().toString());
 		}
 
 		try {
-			processInfoDat(infoDat);
-		} catch (IOException e) {
-			return new Status(Code.FAILED, e.getMessage());
-		}
+			RepairResult result = repairSong(infoDat);
+			logger.debug("Repair complete: {}", file);
 
-		return new Status(Code.SUCCESS, "Nothing to do");
+			if (result.fileStatus().isEmpty()) {
+				return new RepairResult(RepairStatus.NOTHING);
+			}
+			return result;
+		} catch (IOException e) {
+			logger.error("File problem", e);
+			return new RepairResult(RepairStatus.FAILED, e.getMessage());
+		}
 	}
 
-	private static void processInfoDat(Path infoDat) throws IOException {
-		String inString = Files.readString(infoDat);
-		JsonNode rootNode = Json.getJsonMapper().readTree(inString);
-		System.out.println(rootNode);
+	private static RepairResult repairSong(Path infoDatPath) throws IOException {
+		RepairResult result = new RepairResult(RepairStatus.SUCCESS);
 
-		String outString = Json.getBeatSaberFormatWriter().writeValueAsString(rootNode);
+		// Handle info.dat
+		List<String> songFiles = InfoDatHandler.handle(infoDatPath, result);
 
-		if (inString.strip().equals(outString)) {
-			System.out.println("Same");
-		} else {
-			System.out.println("Different");
-			Files.writeString(infoDat, outString);
+		// Handle songs
+		for (String songFile : songFiles) {
+			Path songPath = infoDatPath.getParent().resolve(songFile);
+			// Check paths parents
+			if (songPath.getParent().equals(infoDatPath.getParent())) {
+				SongHandler.handle(songPath, result);
+			} else {
+				throw new UnsupportedOperationException(
+						"Problem with filepath: \"" + songFile + "\" in: " + infoDatPath);
+			}
 		}
 
+		return result;
 	}
 }

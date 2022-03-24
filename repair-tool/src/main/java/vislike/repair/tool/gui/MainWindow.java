@@ -18,14 +18,18 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import vislike.repair.tool.repair.RepairFileEntry;
-import vislike.repair.tool.repair.Status;
-import vislike.repair.tool.repair.Status.Code;
+import vislike.repair.tool.repair.result.FileStatus;
+import vislike.repair.tool.repair.result.RepairResult;
 import vislike.repair.tool.utils.Resources;
 import vislike.repair.tool.utils.Settings;
 
 public class MainWindow implements AutoCloseable {
+
+	private static final Logger logger = LoggerFactory.getLogger(MainWindow.class);
 
 	private Display display = null;
 	private Image icon = null;
@@ -96,11 +100,28 @@ public class MainWindow implements AutoCloseable {
 		repair.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				Status status = RepairFileEntry.repairFile(fileInput.getText());
-				if (status.code() == Code.SUCCESS) {
-					statusText.setText("Success:\n" + status.message());
-				} else {
+				RepairResult status = RepairFileEntry.repairFile(fileInput.getText());
+
+				switch (status.code()) {
+				case NOTHING:
+					statusText.setText("No problem found.");
+					break;
+				case SUCCESS:
+					StringBuilder sb = new StringBuilder();
+					sb.append("Success:\n");
+					for (FileStatus fs : status.fileStatus()) {
+						sb.append("Applied [");
+						sb.append(fs.status());
+						sb.append("] ");
+						sb.append(fs.file());
+						sb.append("\n");
+					}
+					statusText.setText(sb.toString());
+					break;
+				case FAILED:
+				default:
 					statusText.setText("A problem occured, message:\n" + status.message());
+					break;
 				}
 			}
 		});
@@ -108,14 +129,17 @@ public class MainWindow implements AutoCloseable {
 
 	public void run() throws IOException {
 		shell.open();
+		logger.info("Repair Tool Started");
+
 		while (!shell.isDisposed()) {
 			try {
 				if (!display.readAndDispatch())
 					display.sleep();
 			} catch (Exception e) {
+				logger.error("Unexpected problem occurred", e);
 				try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
 					e.printStackTrace(pw);
-					statusText.setText(sw.toString());
+					statusText.setText("Unexpected problem occurred:\n" + sw.toString());
 				}
 			}
 		}

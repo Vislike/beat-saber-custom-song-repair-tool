@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -79,6 +80,7 @@ public class Json {
 
 	private Json() {
 		jsonMapper = new ObjectMapper();
+		jsonMapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
 		minifiedWriter = jsonMapper.writer();
 		beatSaberFormatWriter = jsonMapper.writer(new BeatSaberPrettyPrinter());
 	}
