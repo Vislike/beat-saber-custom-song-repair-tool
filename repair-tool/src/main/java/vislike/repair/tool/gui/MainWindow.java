@@ -100,6 +100,7 @@ public class MainWindow implements AutoCloseable {
 		repair.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				Settings.getInstance().saveInputFile(fileInput.getText());
 				RepairResult status = RepairFileEntry.repairFile(fileInput.getText());
 
 				switch (status.code()) {

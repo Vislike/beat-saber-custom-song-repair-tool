@@ -35,7 +35,6 @@ public class Json {
 		private static final long serialVersionUID = 1L;
 
 		public BeatSaberPrettyPrinter() {
-			super();
 			DefaultIndenter indenter = new DefaultIndenter("  ", "\n");
 			indentArraysWith(indenter);
 			indentObjectsWith(indenter);

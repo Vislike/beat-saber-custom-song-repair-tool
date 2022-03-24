@@ -42,7 +42,8 @@ public class RepairFileEntry {
 			return result;
 		} catch (IOException e) {
 			logger.error("File problem", e);
-			return new RepairResult(RepairStatus.FAILED, e.getMessage());
+
+			return new RepairResult(RepairStatus.FAILED, e.getClass().getSimpleName() + ": " + e.getMessage());
 		}
 	}
 
