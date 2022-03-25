@@ -43,11 +43,10 @@ public class Resources {
 	}
 
 	public static Image getIcon(Display display) {
-		try (InputStream in = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream("icon_credit_Hiram-Abiff_DeviantArt.png")) {
+		try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("icon.png")) {
 			return new Image(display, in);
 		} catch (IOException e) {
-			logger.warn("Failed to read icon file", e);
+			logger.warn("Failed to read icon.png", e);
 			return null;
 		}
 	}

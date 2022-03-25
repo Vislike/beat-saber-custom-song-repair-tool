@@ -3,5 +3,5 @@ target
 .settings
 .classpath
 .project
-settings.properties
 repair-tool.log
+repair-tool.properties

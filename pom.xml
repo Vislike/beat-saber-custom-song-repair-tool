@@ -22,8 +22,8 @@
 
 	<modules>
 		<module>repair-tool</module>
-		<!-- <module>dist</module> -->
-		<!-- <module>jlink</module> -->
+		<module>dist-win</module>
+		<module>jlink</module>
 	</modules>
 
 	<build>

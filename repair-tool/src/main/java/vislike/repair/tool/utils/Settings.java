@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class Settings {
 
 	private static final Logger logger = LoggerFactory.getLogger(Settings.class);
-	private static final Path settingsFile = Path.of("settings.properties");
+	private static final Path settingsFile = Path.of("repair-tool.properties");
 
 	private static class SettingsHolder {
 		private static final Settings settings = new Settings();

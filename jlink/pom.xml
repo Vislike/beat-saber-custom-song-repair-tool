@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>vislike.beat.saber.custom.song.repair.tool</groupId>
+		<artifactId>parent</artifactId>
+		<version>${revision}</version>
+	</parent>
+
+	<packaging>jlink</packaging>
+	<artifactId>jlink</artifactId>
+	<name>Beat Saber Custom Song Repair Tool - JLink</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-jlink-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<addModules>
+						<addModule>java.base</addModule>
+						<addModule>java.desktop</addModule>
+						<addModule>java.logging</addModule>
+						<addModule>java.management</addModule>
+						<addModule>java.naming</addModule>
+						<addModule>java.sql</addModule>
+						<addModule>java.xml</addModule>
+					</addModules>
+					<modulePaths>
+						<modulePath></modulePath>
+					</modulePaths>
+					<compress>2</compress>
+					<noManPages>true</noManPages>
+					<noHeaderFiles>true</noHeaderFiles>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

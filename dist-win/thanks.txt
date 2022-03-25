@@ -1,0 +1,4 @@
+Thanks Jackson devs for flexible Json lib.
+Thanks Eclipse devs for nice looking GUI lib.
+Thanks Logback devs for easy to use logging lib.
+Thanks Hiram-Abiff @ DeviantArt for nice icon.
