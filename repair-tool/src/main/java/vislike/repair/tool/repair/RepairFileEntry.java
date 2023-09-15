@@ -1,19 +1,23 @@
 package vislike.repair.tool.repair;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import vislike.repair.tool.repair.result.FileStatus;
 import vislike.repair.tool.repair.result.RepairResult;
 import vislike.repair.tool.repair.result.RepairStatus;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 public class RepairFileEntry {
 
 	private static final Logger logger = LoggerFactory.getLogger(RepairFileEntry.class);
+
+	public static final String DIR = "\\";
 
 	private RepairFileEntry() {
 	}
@@ -23,28 +27,40 @@ public class RepairFileEntry {
 		logger.info("Applied [{}] {}", message, file);
 	}
 
-	public static RepairResult repairFile(String file) {
-		logger.debug("Starting repair of: {}", file);
+	public static List<RepairResult> repairFile(String file) {
 
-		Path infoDat = Path.of(file);
-		if (!infoDat.getFileName().toString().equalsIgnoreCase("info.dat")) {
-			return new RepairResult(RepairStatus.FAILED,
-					"Expected filename to be: info.dat, got: " + infoDat.getFileName().toString());
-		}
+		File mainDirectory = new File(file);
 
-		try {
-			RepairResult result = repairSong(infoDat);
-			logger.debug("Repair complete: {}", file);
+		String[] directories = Objects.requireNonNull(mainDirectory.list((dir, name) -> new File(dir, name).isDirectory()));
 
-			if (result.fileStatus().isEmpty()) {
-				return new RepairResult(RepairStatus.NOTHING);
+		List<RepairResult> repairResults = new ArrayList<>();
+
+		for(String song : directories){
+			String songPath = file + DIR + song;
+			String songDatPath = songPath + DIR + "info.dat";
+			logger.debug("Starting repair of: {}", songPath);
+			File songDat = new File(songDatPath);
+
+			RepairResult result = new RepairResult(RepairStatus.NOTHING);
+
+			if(songDat.exists()){
+				try {
+					result = repairSong(Path.of(songDatPath));
+					logger.debug("Repair complete: {}", songPath);
+
+					if (result.fileStatus().isEmpty()) {
+						result = new RepairResult(RepairStatus.NOTHING);
+					}
+
+				} catch (IOException e) {
+					logger.error("File problem", e);
+					result = new RepairResult(RepairStatus.FAILED, e.getClass().getSimpleName() + ": " + e.getMessage());
+				}
 			}
-			return result;
-		} catch (IOException e) {
-			logger.error("File problem", e);
-
-			return new RepairResult(RepairStatus.FAILED, e.getClass().getSimpleName() + ": " + e.getMessage());
+			repairResults.add(result);
 		}
+
+		return repairResults;
 	}
 
 	private static RepairResult repairSong(Path infoDatPath) throws IOException {

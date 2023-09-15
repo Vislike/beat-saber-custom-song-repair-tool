@@ -28,9 +28,6 @@
 						<addModule>java.sql</addModule>
 						<addModule>java.xml</addModule>
 					</addModules>
-					<modulePaths>
-						<modulePath></modulePath>
-					</modulePaths>
 					<compress>2</compress>
 					<noManPages>true</noManPages>
 					<noHeaderFiles>true</noHeaderFiles>

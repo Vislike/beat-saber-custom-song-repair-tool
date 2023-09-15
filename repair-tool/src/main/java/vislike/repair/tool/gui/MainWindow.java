@@ -1,40 +1,31 @@
 package vislike.repair.tool.gui;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import vislike.repair.tool.repair.RepairFileEntry;
-import vislike.repair.tool.repair.result.FileStatus;
 import vislike.repair.tool.repair.result.RepairResult;
 import vislike.repair.tool.utils.Resources;
 import vislike.repair.tool.utils.Settings;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class MainWindow implements AutoCloseable {
 
 	private static final Logger logger = LoggerFactory.getLogger(MainWindow.class);
 
-	private Display display = null;
-	private Image icon = null;
-	private Shell shell = null;
-	private Text statusText = null;
+	final private Display display;
+	final private Image icon;
+	final private Shell shell;
+	final private Text statusText;
 
 	public MainWindow() {
 		display = new Display();
@@ -55,9 +46,7 @@ public class MainWindow implements AutoCloseable {
 		fileInput.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		fileInput.setText(Settings.getInstance().getInputFile());
 
-		FileDialog fileDialog = new FileDialog(shell, SWT.OPEN);
-		fileDialog.setFilterExtensions(new String[] { "info.dat" });
-		fileDialog.setFilterNames(new String[] { "Custom Song" });
+		DirectoryDialog directoryDialog = new DirectoryDialog(shell, SWT.OPEN);
 
 		Button browse = new Button(fileGroup, SWT.PUSH);
 		browse.setText("Browse");
@@ -73,26 +62,22 @@ public class MainWindow implements AutoCloseable {
 		repair.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
 
 		// Actions
-		fileInput.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				statusText.setText("File path manualy altered, choose repair to attempt to repair the file.");
-			}
-		});
+		fileInput.addModifyListener(e ->
+				statusText.setText("File path manually altered, choose repair to attempt to repair the file."));
 
 		browse.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// Restore last directory
-				fileDialog.setFilterPath(Settings.getInstance().getBrowseDirectory());
+				directoryDialog.setFilterPath(Settings.getInstance().getBrowseDirectory());
 
 				// Open dialog
-				String file = fileDialog.open();
+				String file = directoryDialog.open();
 				if (file != null) {
 					fileInput.setText(file);
 					statusText.setText("File selected from dialog, choose repair to attempt to repair the file.");
 					Settings.getInstance().saveInputFile(file);
-					Settings.getInstance().saveBrowseDirectory(fileDialog.getFilterPath());
+					Settings.getInstance().saveBrowseDirectory(directoryDialog.getFilterPath());
 				}
 			}
 		});
@@ -101,29 +86,16 @@ public class MainWindow implements AutoCloseable {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Settings.getInstance().saveInputFile(fileInput.getText());
-				RepairResult status = RepairFileEntry.repairFile(fileInput.getText());
+				java.util.List<RepairResult> status = RepairFileEntry.repairFile(fileInput.getText());
 
-				switch (status.code()) {
-				case NOTHING:
-					statusText.setText("No problem found.");
-					break;
-				case SUCCESS:
-					StringBuilder sb = new StringBuilder();
-					sb.append("Success:\n");
-					for (FileStatus fs : status.fileStatus()) {
-						sb.append("Applied [");
-						sb.append(fs.status());
-						sb.append("] ");
-						sb.append(fs.file());
-						sb.append("\n");
-					}
-					statusText.setText(sb.toString());
-					break;
-				case FAILED:
-				default:
-					statusText.setText("A problem occured, message:\n" + status.message());
-					break;
+				StringBuilder resultBody = new StringBuilder();
+
+				for(RepairResult result : status){
+					resultBody.append(result.toString()).append("\n");
 				}
+
+				statusText.setText(resultBody.toString());
+
 			}
 		});
 	}
@@ -140,14 +112,14 @@ public class MainWindow implements AutoCloseable {
 				logger.error("Unexpected problem occurred", e);
 				try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
 					e.printStackTrace(pw);
-					statusText.setText("Unexpected problem occurred:\n" + sw.toString());
+					statusText.setText("Unexpected problem occurred:\n" + sw);
 				}
 			}
 		}
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		if (icon != null) {
 			icon.dispose();
 		}

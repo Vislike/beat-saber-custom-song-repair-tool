@@ -41,7 +41,7 @@ public class SongHandler {
 		if (repaired) {
 			Files.writeString(file, Json.getMinifiedWriter().writeValueAsString(rootNode));
 		} else {
-			// Check if formating should be applied
+			// Check if formatting should be applied
 			String outString = Json.getMinifiedWriter().writeValueAsString(rootNode);
 			if (!inString.equals(outString)) {
 				RepairFileEntry.appendResult(file, result, "Json Formatting");
